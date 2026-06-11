@@ -2,6 +2,10 @@ const { Client, GatewayIntentBits, Collection } = require("discord.js");
 const fs = require('fs');
 const path = require('path');
 
+// 🔥 VOICE FIX PRIORITAIRE
+// Doit être défini avant tout chargement de modules vocaux
+process.env.DISCORD_VOICE_NO_IP_DISCOVERY = "1";
+
 // 🔄 Chargement "intelligent" : local (tokens.js) ou Railway (process.env)
 const tokensPath = path.join(__dirname, 'tokens.js');
 const tokens = fs.existsSync(tokensPath) ? require('./tokens.js') : process.env;
@@ -25,9 +29,6 @@ client.commands = new Collection();
 loadCommands(client);
 loadEvents(client);
 initCrashHandler(client); 
-
-// 🔥 VOICE FIX
-process.env.DISCORD_VOICE_NO_IP_DISCOVERY = "1";
 
 // 🚀 LOGIN SÉCURISÉ
 const loginToken = tokens.TOKEN_VEYZ || process.env.TOKEN || process.env.DISCORD_TOKEN;
