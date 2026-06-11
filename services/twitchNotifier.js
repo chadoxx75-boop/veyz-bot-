@@ -4,7 +4,7 @@ const { getStreamInfo } = require("./twitchService");
 let liveState = false;
 let lastSentMessage = null;
 
-const CHANNEL_ID = "";
+const CHANNEL_ID = "1513997825099436173";
 const ROLE_ID = "1494338640841543783";
 const CRASH_CHANNEL_ID = "1514238836979273739"; 
 const ENZO_ID = "1247264549489610897";

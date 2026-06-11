@@ -5,7 +5,7 @@ let isTiktokLive = false;
 let lastSentTiktokMessage = null;
 
 const TIKTOK_USERNAME = "3n20zhl";
-const CHANNEL_ID = "x";
+const CHANNEL_ID = "1513997825099436173";
 const ROLE_ID = "1514045793252933734";
 const CRASH_CHANNEL_ID = "1514238836979273739";
 const ENZO_ID = "1247264549489610897";
