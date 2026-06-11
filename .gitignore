@@ -1,0 +1,13 @@
+# Dépendances (lourd et inutile à partager)
+node_modules/
+
+# Logs (inutile)
+*.log
+
+# Fichiers de configuration contenant ton TOKEN secret
+config.json
+.env
+
+# Dossiers systèmes (macOS/Windows)
+.DS_Store
+Thumbs.db
