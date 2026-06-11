@@ -13,6 +13,11 @@ function initCrashHandler(client) {
     });
 
     process.on("unhandledRejection", async (err) => {
+        // 🛡️ FILTRE ANTI-SPAM : Ignore l'erreur de socket liée à l'IP discovery
+        if (err && err.message && err.message.includes("Cannot perform IP discovery")) {
+            return;
+        }
+
         console.error("⚠️ Unhandled Rejection:", err);
         try {
             const channel = await client.channels.fetch(CRASH_CHANNEL_ID);
@@ -23,5 +28,4 @@ function initCrashHandler(client) {
     });
 }
 
-// C'est cette ligne qui manquait ou était mal écrite !
 module.exports = { initCrashHandler };
