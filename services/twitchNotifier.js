@@ -11,24 +11,22 @@ const ENZO_ID = "1247264549489610897";
 
 async function startTwitchLoop(client) {
     
-    // Boucle toutes les 60 secondes
+    // 🔥 Boucle accélérée : toutes les 15 secondes
     setInterval(async () => {
         try {
-            // 🔥 On cible ta chaîne Twitch
             const stream = await getStreamInfo("chadoxx__");
 
-            // 🛠️ MOUCHARD DE DEBUG : Affiche dans la console Railway ce que le bot voit
+            // 🛠️ MOUCHARD DE DEBUG 
             console.log(`[DEBUG TWITCH] Statut vu par le bot : ${stream.isLive ? "EN LIGNE 🟢" : "HORS LIGNE 🔴"} (liveState actuel: ${liveState})`);
 
             // 🔴 OFFLINE → ONLINE
             if (stream && stream.isLive && !liveState) {
                 liveState = true;
 
-                // 🛠️ CORRECTION CACHE : On force la recherche du salon avec fetch() pour être sûr à 100%
                 const channel = await client.channels.fetch(CHANNEL_ID).catch(() => null);
                 
                 if (!channel) {
-                    console.error(`❌ [ERREUR CRITIQUE] Le bot ne trouve pas le salon Twitch (ID: ${CHANNEL_ID}). Vérifie l'ID ou les permissions du bot !`);
+                    console.error(`❌ [ERREUR CRITIQUE] Le bot ne trouve pas le salon Twitch (ID: ${CHANNEL_ID}).`);
                     return;
                 }
 
@@ -50,7 +48,6 @@ async function startTwitchLoop(client) {
                         { name: "🎮 Jeu", value: `\`${stream.game || 'Non défini'}\``, inline: true },
                         { name: "📡 Statut", value: "`🟣 EN LIGNE`", inline: true }
                     )
-                    // 🔥 Miniature adaptée à ton pseudo
                     .setImage(`https://static-cdn.jtvnw.net/previews-ttv/live_user_chadoxx__-1280x720.jpg?t=${Date.now()}`)
                     .setFooter({ 
                         text: "Twitch Live System • Riley Bot", 
@@ -66,7 +63,6 @@ async function startTwitchLoop(client) {
                             .setURL("https://www.twitch.tv/chadoxx__")
                     );
 
-                // 🔥 ANTI SPAM (évite double notif si le bot plante juste après l'envoi)
                 if (lastSentMessage) {
                     try {
                         await lastSentMessage.delete();
@@ -94,7 +90,7 @@ async function startTwitchLoop(client) {
                 crashChannel.send(`<@${ENZO_ID}> ⚠️ **[ERREUR LOOP TWITCH]** Bande de monocouilles, la boucle Twitch a foiré :\n\`\`\`js\n${err.message}\n\`\`\``).catch(() => {});
             }
         }
-    }, 60000);
+    }, 15000); // ⏱️ Changé de 60000 à 15000
 }
 
 module.exports = { startTwitchLoop };
