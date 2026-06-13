@@ -3,63 +3,47 @@ const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, Butt
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("teststreamtwitch")
-        .setDescription("Teste l'affichage de l'alerte Twitch premium de Veyz"),
-        
-    async execute(interaction, client) {
-        try {
-            // Création de l'embed identique à celui de twitchNotifier.js
-            const embed = new EmbedBuilder()
-                .setColor('#9146FF')
-                .setAuthor({ 
-                    name: 'Veyz est en direct sur Twitch !', 
-                    iconURL: 'https://cdn-icons-png.flaticon.com/512/5968/5968819.png', 
-                    url: "https://www.twitch.tv/veyz3" 
-                })
-                .setTitle("🔴 [TEST] Le meilleur stream de la galaxie !")
-                .setURL("https://www.twitch.tv/veyz3")
-                .setDescription(
-                    "💜 **Bande de monocouilles !**\n\n" +
-                    "Le GOAT Veyz est en live 🔥\n" +
-                    "Venez donner de la force et rejoindre le stream 💪"
-                )
-                .addFields(
-                    { name: "🎮 Jeu", value: "`Just Chatting (Test)`", inline: true },
-                    { name: "📡 Statut", value: "`🟣 EN LIGNE`", inline: true }
-                )
-                .setImage(`https://static-cdn.jtvnw.net/previews-ttv/live_user_veyz3-1280x720.jpg?t=${Date.now()}`)
-                .setFooter({ 
-                    text: "Veyz Live System • Riley Bot (Mode Test)", 
-                    iconURL: client.user.displayAvatarURL() 
-                })
-                .setTimestamp();
+        .setDescription("Affiche un test de la nouvelle alerte Twitch Veyz3 (Visuel uniquement)"),
 
-            // Création du bouton
-            const row = new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setLabel("🎬 Regarder le Live")
-                        .setStyle(ButtonStyle.Link)
-                        .setURL("https://www.twitch.tv/veyz3")
-                );
+    async execute(interaction) {
+        // Embed identique au notifier avec des données fictives pour le test
+        const embed = new EmbedBuilder()
+            .setColor('#9146FF')
+            .setAuthor({ 
+                name: 'Veyz est en direct sur Twitch', 
+                iconURL: 'https://cdn-icons-png.flaticon.com/512/5968/5968819.png', 
+                url: "https://www.twitch.tv/veyz3" 
+            })
+            .setTitle("🔴 TEST - Titre de ton live ici !")
+            .setURL("https://www.twitch.tv/veyz3")
+            .setDescription(
+                "**Bande de monocouilles !**\n\n" +
+                "Le live vient d'être lancé. Rejoignez le stream via le bouton ci-dessous."
+            )
+            .addFields(
+                { name: "Catégorie", value: "VALORANT", inline: true }
+            )
+            // L'image tentera de charger la miniature actuelle de veyz3
+            .setImage(`https://static-cdn.jtvnw.net/previews-ttv/live_user_veyz3-1280x720.jpg?t=${Date.now()}`)
+            .setFooter({ 
+                text: "Twitch System • Riley Bot", 
+                iconURL: interaction.client.user.displayAvatarURL() 
+            })
+            .setTimestamp();
 
-            // Envoi de la réponse (visible par tout le monde)
-            await interaction.reply({
-                content: `🛠️ **[TEST]** Simulation de l'alerte Twitch :`,
-                embeds: [embed],
-                components: [row]
-            });
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setLabel("Regarder le Stream")
+                    .setStyle(ButtonStyle.Link)
+                    .setURL("https://www.twitch.tv/veyz3")
+            );
 
-        } catch (err) {
-            console.error("❌ [Commande teststreamtwitch] Erreur :", err);
-            
-            // Message d'erreur personnalisé
-            const errorMessage = "⚠️ Eh bande de monocouilles, la commande de test a foiré ! Regardez la console.";
-            
-            if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({ content: errorMessage });
-            } else {
-                await interaction.reply({ content: errorMessage });
-            }
-        }
+        // Envoi public du test
+        await interaction.reply({
+            content: "🛠️ **Test d'affichage Twitch :** (Le rôle mentionné apparaîtra au-dessus en situation réelle)",
+            embeds: [embed],
+            components: [row]
+        });
     }
 };
