@@ -24,12 +24,12 @@ module.exports = {
             ]
         });
 
-        // 🟣 LANCEMENT DU SYSTÈME TWITCH
-        //startTwitchLoop(client);
-        //console.log("🟣 Système de notification Twitch lancé.");
+        // 🟣 LANCEMENT DU SYSTÈME TWITCH (RÉACTIVÉ)
+        startTwitchLoop(client);
+        console.log("🟣 Système de notification Twitch lancé.");
 
-        // ⚫ LANCEMENT DU SYSTÈME TIKTOK
-        //startTiktokLoop(client);
-        //console.log("⚫ Système de notification TikTok lancé.");
+        // ⚫ LANCEMENT DU SYSTÈME TIKTOK (TOUJOURS DÉSACTIVÉ)
+        // startTiktokLoop(client);
+        // console.log("⚫ Système de notification TikTok lancé.");
     }
 };
