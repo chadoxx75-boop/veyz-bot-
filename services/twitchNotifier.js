@@ -14,10 +14,11 @@ async function startTwitchLoop(client) {
     // Boucle toutes les 60 secondes
     setInterval(async () => {
         try {
-            const stream = await getStreamInfo("veyz3");
+            // 🔥 On cible ta chaîne Twitch
+            const stream = await getStreamInfo("chadoxx__");
 
             // 🔴 OFFLINE → ONLINE
-            if (stream.isLive && !liveState) {
+            if (stream && stream.isLive && !liveState) {
                 liveState = true;
 
                 const channel = client.channels.cache.get(CHANNEL_ID);
@@ -26,25 +27,25 @@ async function startTwitchLoop(client) {
                 const embed = new EmbedBuilder()
                     .setColor('#9146FF')
                     .setAuthor({ 
-                        name: 'Veyz est en direct sur Twitch !', 
+                        name: 'ChadoxX est en direct sur Twitch !', 
                         iconURL: 'https://cdn-icons-png.flaticon.com/512/5968/5968819.png', 
-                        url: "https://www.twitch.tv/veyz3" 
+                        url: "https://www.twitch.tv/chadoxx__" 
                     })
-                    .setTitle(stream.title)
-                    .setURL("https://www.twitch.tv/veyz3")
+                    .setTitle(stream.title || "Live en cours !")
+                    .setURL("https://www.twitch.tv/chadoxx__")
                     .setDescription(
                         "💜 **Bande de monocouilles !**\n\n" +
-                        "Le GOAT Veyz est en live 🔥\n" +
+                        "Le boss ChadoxX est en live 🔥\n" +
                         "Venez donner de la force et rejoindre le stream 💪"
                     )
                     .addFields(
-                        { name: "🎮 Jeu", value: `\`${stream.game}\``, inline: true },
+                        { name: "🎮 Jeu", value: `\`${stream.game || 'Non défini'}\``, inline: true },
                         { name: "📡 Statut", value: "`🟣 EN LIGNE`", inline: true }
                     )
-                    // L'ajout de ?t=Date.now() empêche Discord de mettre la miniature en cache
-                    .setImage(`https://static-cdn.jtvnw.net/previews-ttv/live_user_veyz3-1280x720.jpg?t=${Date.now()}`)
+                    // 🔥 Miniature adaptée à ton pseudo
+                    .setImage(`https://static-cdn.jtvnw.net/previews-ttv/live_user_chadoxx__-1280x720.jpg?t=${Date.now()}`)
                     .setFooter({ 
-                        text: "Veyz Live System • Riley Bot", 
+                        text: "Twitch Live System • Riley Bot", 
                         iconURL: client.user.displayAvatarURL() 
                     })
                     .setTimestamp();
@@ -54,10 +55,10 @@ async function startTwitchLoop(client) {
                         new ButtonBuilder()
                             .setLabel("🎬 Regarder le Live")
                             .setStyle(ButtonStyle.Link)
-                            .setURL("https://www.twitch.tv/veyz3")
+                            .setURL("https://www.twitch.tv/chadoxx__")
                     );
 
-                // 🔥 ANTI SPAM (évite double notif si restart bot)
+                // 🔥 ANTI SPAM (évite double notif si le bot plante juste après l'envoi)
                 if (lastSentMessage) {
                     try {
                         await lastSentMessage.delete();
@@ -74,7 +75,7 @@ async function startTwitchLoop(client) {
             }
 
             // ⚫ ONLINE → OFFLINE
-            if (!stream.isLive && liveState) {
+            if (stream && !stream.isLive && liveState) {
                 liveState = false;
             }
 
