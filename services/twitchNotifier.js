@@ -17,12 +17,20 @@ async function startTwitchLoop(client) {
             // 🔥 On cible ta chaîne Twitch
             const stream = await getStreamInfo("chadoxx__");
 
+            // 🛠️ MOUCHARD DE DEBUG : Affiche dans la console Railway ce que le bot voit
+            console.log(`[DEBUG TWITCH] Statut vu par le bot : ${stream.isLive ? "EN LIGNE 🟢" : "HORS LIGNE 🔴"} (liveState actuel: ${liveState})`);
+
             // 🔴 OFFLINE → ONLINE
             if (stream && stream.isLive && !liveState) {
                 liveState = true;
 
-                const channel = client.channels.cache.get(CHANNEL_ID);
-                if (!channel) return;
+                // 🛠️ CORRECTION CACHE : On force la recherche du salon avec fetch() pour être sûr à 100%
+                const channel = await client.channels.fetch(CHANNEL_ID).catch(() => null);
+                
+                if (!channel) {
+                    console.error(`❌ [ERREUR CRITIQUE] Le bot ne trouve pas le salon Twitch (ID: ${CHANNEL_ID}). Vérifie l'ID ou les permissions du bot !`);
+                    return;
+                }
 
                 const embed = new EmbedBuilder()
                     .setColor('#9146FF')
