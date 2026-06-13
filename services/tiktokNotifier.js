@@ -1,106 +1,87 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder } = require("discord.js");
-const { WebcastPushConnection } = require("tiktok-live-connector");
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const { getTiktokStreamInfo } = require("./tiktokService");
 
-let isTiktokLive = false;
-let lastSentTiktokMessage = null;
+let liveState = false;
+let lastSentMessage = null;
+let lastAlertTime = 0; 
+const ALERT_COOLDOWN = 3600000; // Anti-spam : 1 heure minimum entre deux alertes
 
-const TIKTOK_USERNAME = "3n20zhl";
-const CHANNEL_ID = "1513997825099436173";
-const ROLE_ID = "1514045793252933734";
-const CRASH_CHANNEL_ID = "1514238836979273739";
+const CHANNEL_ID = "1513997825099436173"; // Même salon que Twitch
+const ROLE_ID = "1499390064831234131";    // Même rôle que Twitch
+const CRASH_CHANNEL_ID = "1514238836979273739"; 
 const ENZO_ID = "1247264549489610897";
 
-async function checkTikTokLive(client) {
-    const tiktokConnection = new WebcastPushConnection(TIKTOK_USERNAME);
+async function startTiktokLoop(client) {
+    
+    // Vérification toutes les 3 minutes (pour éviter les blocages TikTok)
+    setInterval(async () => {
+        try {
+            const stream = await getTiktokStreamInfo("3n20zhl");
 
-    try {
-        const roomInfo = await tiktokConnection.connect();
-        
-        if (!isTiktokLive) {
-            isTiktokLive = true;
+            // 🔴 OFFLINE → ONLINE (Avec vérification du Cooldown d'1h)
+            if (stream && stream.isLive && !liveState && (Date.now() - lastAlertTime > ALERT_COOLDOWN)) {
+                liveState = true;
+                lastAlertTime = Date.now();
 
-            const channel = client.channels.cache.get(CHANNEL_ID);
-            if (!channel) return;
+                const channel = await client.channels.fetch(CHANNEL_ID).catch(() => null);
+                
+                if (!channel) return;
 
-            const title = roomInfo.title || "En direct sur TikTok !";
-            const coverUrl = roomInfo.roomInfo?.cover?.url_list?.[0];
+                const embed = new EmbedBuilder()
+                    .setColor('#000000') // Noir TikTok super clean
+                    .setAuthor({ 
+                        name: 'Veyz est en direct sur TikTok', 
+                        iconURL: 'https://cdn-icons-png.flaticon.com/512/3046/3046121.png', 
+                        url: "https://www.tiktok.com/@3n20zhl/live" 
+                    })
+                    .setTitle(stream.title || "Live en cours")
+                    .setURL("https://www.tiktok.com/@3n20zhl/live")
+                    .setDescription(
+                        "**Bande de monocouilles !**\n\n" +
+                        "Le live vient d'être lancé. Rejoignez le stream via le bouton ci-dessous."
+                    )
+                    .setFooter({ 
+                        text: "TikTok System • Riley Bot", 
+                        iconURL: client.user.displayAvatarURL() 
+                    })
+                    .setTimestamp();
 
-            // 1. On charge l'image locale pour le vrai live
-            const logoImage = new AttachmentBuilder('./assets/logo.png');
+                const row = new ActionRowBuilder()
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setLabel("Regarder le Stream")
+                            .setStyle(ButtonStyle.Link)
+                            .setURL("https://www.tiktok.com/@3n20zhl/live")
+                    );
 
-            const embed = new EmbedBuilder()
-                .setColor('#EAE0C8') // Beige premium
-                .setAuthor({ 
-                    name: 'Veyz est en direct sur TikTok', 
-                    iconURL: 'https://cdn-icons-png.flaticon.com/512/3046/3046121.png', 
-                    url: `https://www.tiktok.com/@${TIKTOK_USERNAME}/live` 
-                })
-                .setTitle(title) // Titre réel du live
-                .setURL(`https://www.tiktok.com/@${TIKTOK_USERNAME}/live`)
-                .setDescription(
-                    "💎 **Bande de monocouilles !**\n\n" +
-                    "Le GOAT Veyz a lancé son live 🔥\n" +
-                    "Rejoignez le direct pour ne rien manquer."
-                )
-                .addFields(
-                    { name: "📡 Statut", value: "`⚫ EN DIRECT`", inline: true }
-                )
-                // 2. On met ton logo local en miniature
-                .setThumbnail('attachment://logo.png')
-                .setFooter({ text: "Veyz Live System", iconURL: client.user.displayAvatarURL() })
-                .setTimestamp();
-
-            // Si TikTok fournit une image du live, on l'ajoute en grand en bas
-            if (coverUrl) {
-                embed.setImage(coverUrl);
-            }
-
-            const row = new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setLabel("📱 Rejoindre le Live")
-                        .setStyle(ButtonStyle.Link)
-                        .setURL(`https://www.tiktok.com/@${TIKTOK_USERNAME}/live`)
-                );
-
-            if (lastSentTiktokMessage) {
-                try { await lastSentTiktokMessage.delete(); } catch {}
-            }
-
-            // 3. On envoie le message avec le fichier logo
-            const msg = await channel.send({
-                content: `<@&${ROLE_ID}>`,
-                embeds: [embed],
-                components: [row],
-                files: [logoImage] // Envoi de l'image locale
-            });
-
-            lastSentTiktokMessage = msg;
-        }
-
-        tiktokConnection.disconnect();
-
-    } catch (err) {
-        const errorMessage = err.message || "";
-        
-        if (errorMessage.includes("not live") || errorMessage.includes("not found")) {
-            if (isTiktokLive) {
-                isTiktokLive = false;
-            }
-        } else {
-            console.error("❌ [TikTok] Erreur inattendue :", err);
-            if (!errorMessage.includes("fetch") && !errorMessage.includes("timeout")) {
-                const crashChannel = client.channels.cache.get(CRASH_CHANNEL_ID);
-                if (crashChannel) {
-                    crashChannel.send(`<@${ENZO_ID}> ⚠️ **[ERREUR TIKTOK]** Bande de monocouilles, le module TikTok a foiré :\n\`\`\`js\n${errorMessage}\n\`\`\``).catch(() => {});
+                if (lastSentMessage) {
+                    try {
+                        await lastSentMessage.delete();
+                    } catch {}
                 }
+
+                const msg = await channel.send({
+                    content: `<@&${ROLE_ID}>`,
+                    embeds: [embed],
+                    components: [row]
+                });
+
+                lastSentMessage = msg;
+            }
+
+            // ⚫ ONLINE → OFFLINE
+            if (stream && !stream.isLive && liveState) {
+                liveState = false;
+            }
+
+        } catch (err) {
+            console.error("Erreur critique dans la boucle TikTok:", err);
+            const crashChannel = client.channels.cache.get(CRASH_CHANNEL_ID);
+            if (crashChannel) {
+                crashChannel.send(`<@${ENZO_ID}> ⚠️ **[ERREUR LOOP TIKTOK]** La boucle a foiré :\n\`\`\`js\n${err.message}\n\`\`\``).catch(() => {});
             }
         }
-    }
-}
-
-function startTiktokLoop(client) {
-    setInterval(() => checkTikTokLive(client), 60000);
+    }, 180000); // 3 minutes
 }
 
 module.exports = { startTiktokLoop };

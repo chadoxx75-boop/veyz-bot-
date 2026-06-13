@@ -29,7 +29,7 @@ module.exports = {
         console.log("🟣 Système de notification Twitch lancé.");
 
         // ⚫ LANCEMENT DU SYSTÈME TIKTOK (TOUJOURS DÉSACTIVÉ)
-        // startTiktokLoop(client);
-        // console.log("⚫ Système de notification TikTok lancé.");
+         startTiktokLoop(client);
+         console.log("⚫ Système de notification TikTok lancé.");
     }
 };
