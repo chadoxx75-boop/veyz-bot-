@@ -1,22 +1,32 @@
-async function getStreamInfo(username = "veyz3") {
+async function getStreamInfo(username = "chadoxx__") {
     try {
-        // 1. On vérifie d'abord si la chaîne est en ligne
         const liveRes = await fetch(`https://decapi.me/twitch/live/${username}`);
-        const liveText = await liveRes.text();
 
-        // Si le texte contient "offline" ou est vide, il n'est pas en live
-        if (!liveText || liveText.toLowerCase().includes("offline")) {
+        // 🛡️ PROTECTION 1 : Si l'API plante (Cloudflare, 502, etc.), on annule
+        if (!liveRes.ok) {
             return { isLive: false };
         }
 
-        // 2. S'il est en live, on récupère le titre et le jeu pour l'embed premium
+        const liveText = await liveRes.text();
+
+        // 🛡️ PROTECTION 2 : On vérifie si c'est bien offline ou une erreur API classique
+        if (!liveText || liveText.toLowerCase().includes("offline") || liveText.includes("User not found")) {
+            return { isLive: false };
+        }
+
+        // Si on arrive ici, l'API dit que tu es en live. On récupère le reste.
         const [titleRes, gameRes] = await Promise.all([
             fetch(`https://decapi.me/twitch/title/${username}`),
             fetch(`https://decapi.me/twitch/game/${username}`)
         ]);
 
-        const title = await titleRes.text();
-        const game = await gameRes.text();
+        let title = titleRes.ok ? await titleRes.text() : "🔴 Live en cours !";
+        let game = gameRes.ok ? await gameRes.text() : "Jeu inconnu";
+
+        // 🛡️ PROTECTION 3 : Anti-Crash Discord (Les embeds ont des limites strictes)
+        // Si decapi renvoie du HTML par erreur, on le coupe avant de l'envoyer à Discord
+        if (title.length > 250) title = title.substring(0, 250) + "...";
+        if (game.length > 100) game = game.substring(0, 100) + "...";
 
         return {
             isLive: true,
@@ -24,7 +34,8 @@ async function getStreamInfo(username = "veyz3") {
             game: game && !game.includes("Error") ? game : "Jeu inconnu"
         };
     } catch (error) {
-        console.error("❌ Erreur API DecAPI:", error);
+        // Cette erreur s'affichera proprement dans ta console Railway sans faire planter la boucle
+        console.error("❌ Erreur silencieuse API DecAPI:", error.message);
         return { isLive: false };
     }
 }
