@@ -11,13 +11,10 @@ const ENZO_ID = "1247264549489610897";
 
 async function startTwitchLoop(client) {
     
-    // 🔥 Boucle accélérée : toutes les 15 secondes
+    // Boucle toutes les 15 secondes
     setInterval(async () => {
         try {
-            const stream = await getStreamInfo("chadoxx__");
-
-            // 🛠️ MOUCHARD DE DEBUG 
-            console.log(`[DEBUG TWITCH] Statut vu par le bot : ${stream.isLive ? "EN LIGNE 🟢" : "HORS LIGNE 🔴"} (liveState actuel: ${liveState})`);
+            const stream = await getStreamInfo("veyz3");
 
             // 🔴 OFFLINE → ONLINE
             if (stream && stream.isLive && !liveState) {
@@ -25,32 +22,27 @@ async function startTwitchLoop(client) {
 
                 const channel = await client.channels.fetch(CHANNEL_ID).catch(() => null);
                 
-                if (!channel) {
-                    console.error(`❌ [ERREUR CRITIQUE] Le bot ne trouve pas le salon Twitch (ID: ${CHANNEL_ID}).`);
-                    return;
-                }
+                if (!channel) return;
 
                 const embed = new EmbedBuilder()
                     .setColor('#9146FF')
                     .setAuthor({ 
-                        name: 'ChadoxX est en direct sur Twitch !', 
+                        name: 'Veyz est en direct sur Twitch', 
                         iconURL: 'https://cdn-icons-png.flaticon.com/512/5968/5968819.png', 
-                        url: "https://www.twitch.tv/chadoxx__" 
+                        url: "https://www.twitch.tv/veyz3" 
                     })
-                    .setTitle(stream.title || "Live en cours !")
-                    .setURL("https://www.twitch.tv/chadoxx__")
+                    .setTitle(stream.title || "Live en cours")
+                    .setURL("https://www.twitch.tv/veyz3")
                     .setDescription(
-                        "💜 **Bande de monocouilles !**\n\n" +
-                        "Le boss ChadoxX est en live 🔥\n" +
-                        "Venez donner de la force et rejoindre le stream 💪"
+                        "**Bande de monocouilles !**\n\n" +
+                        "Le live vient d'être lancé. Rejoignez le stream via le bouton ci-dessous."
                     )
                     .addFields(
-                        { name: "🎮 Jeu", value: `\`${stream.game || 'Non défini'}\``, inline: true },
-                        { name: "📡 Statut", value: "`🟣 EN LIGNE`", inline: true }
+                        { name: "Catégorie", value: stream.game || 'Non défini', inline: true }
                     )
-                    .setImage(`https://static-cdn.jtvnw.net/previews-ttv/live_user_chadoxx__-1280x720.jpg?t=${Date.now()}`)
+                    .setImage(`https://static-cdn.jtvnw.net/previews-ttv/live_user_veyz3-1280x720.jpg?t=${Date.now()}`)
                     .setFooter({ 
-                        text: "Twitch Live System • Riley Bot", 
+                        text: "Twitch System • Riley Bot", 
                         iconURL: client.user.displayAvatarURL() 
                     })
                     .setTimestamp();
@@ -58,9 +50,9 @@ async function startTwitchLoop(client) {
                 const row = new ActionRowBuilder()
                     .addComponents(
                         new ButtonBuilder()
-                            .setLabel("🎬 Regarder le Live")
+                            .setLabel("Regarder le Stream")
                             .setStyle(ButtonStyle.Link)
-                            .setURL("https://www.twitch.tv/chadoxx__")
+                            .setURL("https://www.twitch.tv/veyz3")
                     );
 
                 if (lastSentMessage) {
@@ -87,10 +79,10 @@ async function startTwitchLoop(client) {
             console.error("Erreur critique dans la boucle Twitch:", err);
             const crashChannel = client.channels.cache.get(CRASH_CHANNEL_ID);
             if (crashChannel) {
-                crashChannel.send(`<@${ENZO_ID}> ⚠️ **[ERREUR LOOP TWITCH]** Bande de monocouilles, la boucle Twitch a foiré :\n\`\`\`js\n${err.message}\n\`\`\``).catch(() => {});
+                crashChannel.send(`<@${ENZO_ID}> ⚠️ **[ERREUR LOOP TWITCH]** La boucle a foiré :\n\`\`\`js\n${err.message}\n\`\`\``).catch(() => {});
             }
         }
-    }, 15000); // ⏱️ Changé de 60000 à 15000
+    }, 15000); 
 }
 
 module.exports = { startTwitchLoop };
