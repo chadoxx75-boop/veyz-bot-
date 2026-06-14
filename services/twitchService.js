@@ -1,4 +1,4 @@
-async function getStreamInfo(username = "chadoxx__") {
+async function getStreamInfo(username = "veyz3") {
     try {
         const liveRes = await fetch(`https://decapi.me/twitch/uptime/${username}`);
 
