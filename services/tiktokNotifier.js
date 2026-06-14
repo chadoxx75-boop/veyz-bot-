@@ -7,7 +7,7 @@ let lastAlertTime = 0;
 const ALERT_COOLDOWN = 3600000; // Anti-spam : 1 heure minimum entre deux alertes
 
 const CHANNEL_ID = "1513997825099436173"; // Même salon que Twitch
-const ROLE_ID = "everyone";    // Même rôle que Twitch
+const ROLE_ID = "1471968070292606979";    // Même rôle que Twitch
 const CRASH_CHANNEL_ID = "1514238836979273739"; 
 const ENZO_ID = "1247264549489610897";
 
