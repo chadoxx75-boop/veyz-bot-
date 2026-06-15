@@ -99,7 +99,7 @@ module.exports = {
         // Envoi du message initial éphémère
         const response = await interaction.reply(generateMainMenu(interaction.guild));
 
-        // 🎯 COLLECTEUR D'ÉVÉNEMENTS
+        // 🎯 COLLECTEUR D'ÉVÉNEMENTS (Dure 10 minutes pour te laisser le temps)
         const collector = response.createMessageComponentCollector({ 
             filter: i => i.user.id === ENZO_ID, 
             time: 600000 
@@ -187,8 +187,8 @@ module.exports = {
                 // Modifier (Nom / Couleur)
                 if (i.customId === 'edit_role') {
                     const modal = new ModalBuilder().setCustomId('modal_edit_role').setTitle('Modifier le rôle');
-                    const nameInput = new TextInputBuilder().setCustomId('edit_name').setLabel('Nouveau nom').setStyle(TextInputStyle.Short).setRequired(false).setValue(role.name);
-                    const colorInput = new TextInputBuilder().setCustomId('edit_color').setLabel('Couleur Hex (ex: #FF0000)').setStyle(TextInputStyle.Short).setRequired(false).setValue(role.hexColor !== '#000000' ? role.hexColor : '');
+                    const nameInput = new TextInputBuilder().setCustomId('edit_name').setLabel('Nouveau nom (laisser vide pour garder)').setStyle(TextInputStyle.Short).setRequired(false).setValue(role.name);
+                    const colorInput = new TextInputBuilder().setCustomId('edit_color').setLabel('Couleur Hex (ex: #FF0000) (optionnel)').setStyle(TextInputStyle.Short).setRequired(false).setValue(role.hexColor !== '#000000' ? role.hexColor : '');
                     
                     modal.addComponents(new ActionRowBuilder().addComponents(nameInput), new ActionRowBuilder().addComponents(colorInput));
                     await i.showModal(modal);
@@ -198,6 +198,7 @@ module.exports = {
                         const newName = modalSubmit.fields.getTextInputValue('edit_name') || role.name;
                         let newColor = modalSubmit.fields.getTextInputValue('edit_color') || role.color;
                         
+                        // Validation simple de la couleur
                         if (typeof newColor === 'string' && !newColor.startsWith('#')) newColor = `#${newColor}`;
 
                         await role.edit({ name: newName, color: newColor });
@@ -238,9 +239,9 @@ module.exports = {
             } catch (error) {
                 console.error("Erreur commande rl:", error);
                 if (!i.replied && !i.deferred) {
-                    await i.reply({ content: "❌ Erreur : Le bot manque probablement de permissions.", ephemeral: true });
+                    await i.reply({ content: "❌ Erreur : Le bot manque probablement de permissions (rôle trop bas) ou l'action est invalide.", ephemeral: true });
                 } else {
-                    await i.followUp({ content: "❌ Une erreur s'est produite.", ephemeral: true });
+                    await i.followUp({ content: "❌ Une erreur s'est produite (Permissions).", ephemeral: true });
                 }
             }
         });
