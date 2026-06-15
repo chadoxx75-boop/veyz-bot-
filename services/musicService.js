@@ -151,4 +151,4 @@ function stopMusic(interaction) {
     return interaction.reply({ content: "⏹️ **Musique arrêtée !** Je reste dans le coin si besoin, sale monocouille" });
 }
 
-module.exports = { playMusic, pauseMusic, resumeMusic, stopMusic };caca
+module.exports = { playMusic, pauseMusic, resumeMusic, stopMusic };
