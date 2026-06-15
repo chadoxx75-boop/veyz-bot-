@@ -8,10 +8,10 @@ module.exports = {
         .setDescription("Gestionnaire de rôles avancé (Accès restreint)"),
 
     async execute(interaction) {
-        // 🔒 SÉCURITÉ : Vérification de ton ID
+        // 🔒 SÉCURITÉ : Vérification de ton ID avec ton message personnalisé
         if (interaction.user.id !== ENZO_ID) {
             return interaction.reply({ 
-                content: "❌ **Accès refusé.** Tu n'as pas l'autorisation d'utiliser cette commande.", 
+                content: "❌ **Accès refusé.** Seulement ChadoxX est autorisé à utiliser cette commande.", 
                 ephemeral: true 
             });
         }
@@ -100,7 +100,7 @@ module.exports = {
         // Envoi du message initial éphémère
         const response = await interaction.reply(generateMainMenu(interaction.guild));
 
-        // 🎯 COLLECTEUR D'ÉVÉNEMENTS
+        // 🎯 COLLECTEUR D'ÉVÉNEMENTS (Dure 10 minutes pour te laisser le temps)
         const collector = response.createMessageComponentCollector({ 
             filter: i => i.user.id === ENZO_ID, 
             time: 600000 
