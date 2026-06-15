@@ -5,7 +5,7 @@ let liveState = false;
 let lastSentMessage = null;
 
 const CHANNEL_ID = "1513997825099436173";
-const ROLE_ID = "1471968070292606979";
+const ROLE_ID = "everyone"; // 👈 Modifié ici pour cibler everyone
 const CRASH_CHANNEL_ID = "1514238836979273739"; 
 const ENZO_ID = "1247264549489610897";
 
@@ -61,10 +61,14 @@ async function startTwitchLoop(client) {
                     } catch {}
                 }
 
+                // 🔥 NOUVELLE LOGIQUE DE PING
+                const pingText = ROLE_ID === "everyone" ? "@everyone" : `<@&${ROLE_ID}>`;
+
                 const msg = await channel.send({
-                    content: `<@&${ROLE_ID}>`,
+                    content: pingText,
                     embeds: [embed],
-                    components: [row]
+                    components: [row],
+                    allowedMentions: { parse: ['everyone', 'roles'] } // 👈 Force Discord à envoyer la notif
                 });
 
                 lastSentMessage = msg;

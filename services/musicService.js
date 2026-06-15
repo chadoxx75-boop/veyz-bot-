@@ -1,4 +1,4 @@
-const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, NoSubscriberBehavior } = require('@discordjs/voice');
+const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, NoSubscriberBehavior, StreamType } = require('@discordjs/voice');
 const scdl = require('soundcloud-downloader').default;
 const yts = require('yt-search');
 const { EmbedBuilder } = require('discord.js');
@@ -38,6 +38,19 @@ async function playMusic(interaction, query) {
             guildId: interaction.guild.id,
             adapterCreator: interaction.guild.voiceAdapterCreator,
         });
+
+        // 🛠️ FIX RÉSEAU : Empêche la déconnexion vocale automatique au bout de 10/15 secondes
+        connection.on('stateChange', (oldState, newState) => {
+            const oldNetworking = Reflect.get(oldState, 'networking');
+            const newNetworking = Reflect.get(newState, 'networking');
+            const networkStateChangeHandler = (oldNetworkState, newNetworkState) => {
+                const newUdp = Reflect.get(newNetworkState, 'udp');
+                clearInterval(newUdp?.keepAliveInterval);
+            };
+            oldNetworking?.off('stateChange', networkStateChangeHandler);
+            newNetworking?.on('stateChange', networkStateChangeHandler);
+        });
+
         connection.subscribe(player);
 
         let title = "Musique Inconnue";
@@ -46,6 +59,7 @@ async function playMusic(interaction, query) {
         let stream;
         let searchQuery = query;
 
+        // Astuce : On convertit les liens YouTube en recherche texte pour SoundCloud
         if (query.includes('youtube.com') || query.includes('youtu.be')) {
             const ytResult = await yts(query); 
             if (ytResult && ytResult.videos.length > 0) {
@@ -73,13 +87,19 @@ async function playMusic(interaction, query) {
             stream = await scdl.download(finalUrl);
         }
 
-        const resource = createAudioResource(stream);
+        // 🛠️ FIX AUDIO : On force FFmpeg à être permissif avec le stream pour éviter les micro-coupures
+        const resource = createAudioResource(stream, {
+            inputType: StreamType.Arbitrary,
+            inlineVolume: true // Souvent, activer ça empêche le pipeline de s'effondrer
+        });
+        resource.volume.setVolume(1.0);
+
         player.play(resource);
 
         // 🟢 CHANGEMENT DU STATUT DU BOT
         currentClient.user.setPresence({
             status: "online",
-            activities: [{ name: title, type: 2 }] // 2 = Listening (Écoute...)
+            activities: [{ name: title, type: 2 }] // 2 = Listening
         });
 
         const embed = new EmbedBuilder()
@@ -120,7 +140,7 @@ function resumeMusic(interaction) {
     return interaction.reply({ content: "⚠️ La musique n'est pas en pause t'es con ou quoi !", ephemeral: true });
 }
 
-// ⏹️ FONCTION STOP (Corrigée pour ne plus déconnecter)
+// ⏹️ FONCTION STOP 
 function stopMusic(interaction) {
     if (player.state.status === AudioPlayerStatus.Idle) {
         return interaction.reply({ content: "⚠️ Aucune musique n'est en cours de lecture !", ephemeral: true });
